@@ -24,7 +24,7 @@ public class PatternController {
 
     @GetMapping("{pattern}")
     public List<CountryPatternResponse> getCountriesByPattern(@PathVariable String pattern) {
-        log.info(String.format("Received request: find countries matching pattern \"%s\"", pattern));
+        log.info("Received request: find countries matching pattern \"{}\"", pattern);
         return service.getCountriesByPattern(pattern);
     }
 }
