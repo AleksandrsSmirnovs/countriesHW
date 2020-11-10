@@ -99,7 +99,7 @@ public class DatabaseCountryService implements CountryService {
 
     private boolean dbDataIsStale() {
         Timestamp dbTimestamp = timestampRepository.findById(1).orElse(new Timestamp(1, 0L));
-        return System.currentTimeMillis() - dbTimestamp.getTimestamp() > 86400000;
+        return System.currentTimeMillis() - dbTimestamp.getTimestamp() > 500;
     }
 
     private void setTimestamp() {
@@ -107,6 +107,7 @@ public class DatabaseCountryService implements CountryService {
     }
 
     private void updateDatabaseContents() {
+        repository.deleteAll();
         List<Country> list = parser.getCountryList();
         repository.saveAll(list);
         setTimestamp();
