@@ -22,6 +22,11 @@ public interface CountryRepository extends CrudRepository<Country, Long> {
 
     @Query(value = "SELECT * FROM country WHERE lower(name) LIKE :pattern", nativeQuery = true)
     List<Country> getCountriesByPattern(@Param("pattern") String pattern);
+
+//    @Query(value = "INSERT INTO country (area, capital, name, population) VALUES (:area, :capital, :name, :population)", nativeQuery = true)
+//    void saveCountry(@Param("area") double area, @Param("capital") String capital, @Param("name") String name, @Param("population") long population);
+
+
 }
 
 
