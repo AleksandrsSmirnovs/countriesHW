@@ -5,16 +5,19 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import work.home.countries.domain.Country;
+import work.home.countries.domain.Currency;
 import work.home.countries.domain.Timestamp;
 import work.home.countries.exception.NotFoundException;
 import work.home.countries.parser.CountryListParser;
 import work.home.countries.repository.CountryRepository;
+import work.home.countries.repository.CurrencyRepository;
 import work.home.countries.repository.TimestampRepository;
 import work.home.countries.response.CountryAreaResponse;
 import work.home.countries.response.CountryDensityResponse;
 import work.home.countries.response.CountryPatternResponse;
 import work.home.countries.response.CountryPopulationResponse;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -25,12 +28,14 @@ import static java.util.stream.Collectors.*;
 public class DatabaseCountryService implements CountryService {
 
     private static final Logger log = LoggerFactory.getLogger(DatabaseCountryService.class);
-    private CountryRepository repository;
+    private CountryRepository countryRepository;
+    private CurrencyRepository currencyRepository;
     private TimestampRepository timestampRepository;
     private CountryListParser parser;
 
-    public DatabaseCountryService(CountryRepository repository, TimestampRepository timestampRepository, CountryListParser parser) {
-        this.repository = repository;
+    public DatabaseCountryService(CountryRepository repository, CurrencyRepository currencyRepository, TimestampRepository timestampRepository, CountryListParser parser) {
+        this.countryRepository = repository;
+        this.currencyRepository = currencyRepository;
         this.timestampRepository = timestampRepository;
         this.parser = parser;
     }
@@ -40,7 +45,7 @@ public class DatabaseCountryService implements CountryService {
         if (dbDataIsStale()) {
             updateDatabaseContents();
         }
-        List<Country> countries = repository.getTopCountriesByPopulation(number);
+        List<Country> countries = countryRepository.getTopCountriesByPopulation(number);
         AtomicInteger counter = new AtomicInteger(1);
         return countries.stream()
                 .map(country -> new CountryPopulationResponse(counter.getAndIncrement() + ".",
@@ -54,7 +59,7 @@ public class DatabaseCountryService implements CountryService {
         if (dbDataIsStale()) {
             updateDatabaseContents();
         }
-        List<Country> countries = repository.getTopCountriesByArea(number);
+        List<Country> countries = countryRepository.getTopCountriesByArea(number);
         AtomicInteger counter = new AtomicInteger(1);
         return countries.stream()
                 .map(country -> new CountryAreaResponse(
@@ -70,7 +75,7 @@ public class DatabaseCountryService implements CountryService {
         if (dbDataIsStale()) {
             updateDatabaseContents();
         }
-        List<Country> countries = repository.getTopCountriesByPopulationDensity(number);
+        List<Country> countries = countryRepository.getTopCountriesByPopulationDensity(number);
         AtomicInteger counter = new AtomicInteger(1);
         return countries.stream()
                 .map(country -> new CountryDensityResponse(
@@ -86,7 +91,7 @@ public class DatabaseCountryService implements CountryService {
         if (dbDataIsStale()) {
             updateDatabaseContents();
         }
-        List<Country> countries = repository.getCountriesByPattern(pattern.toLowerCase().replace("*", "%"));
+        List<Country> countries = countryRepository.getCountriesByPattern(pattern.toLowerCase().replace("*", "%"));
         if (countries.isEmpty()) {
             throw new NotFoundException(String.format("No results found for pattern %s", pattern));
         }
@@ -99,7 +104,7 @@ public class DatabaseCountryService implements CountryService {
 
     private boolean dbDataIsStale() {
         Timestamp dbTimestamp = timestampRepository.findById(1).orElse(new Timestamp(1, 0L));
-        return System.currentTimeMillis() - dbTimestamp.getTimestamp() > 86400000;
+        return System.currentTimeMillis() - dbTimestamp.getTimestamp() > 500;
     }
 
     private void setTimestamp() {
@@ -107,8 +112,28 @@ public class DatabaseCountryService implements CountryService {
     }
 
     private void updateDatabaseContents() {
+        countryRepository.deleteAll();
         List<Country> list = parser.getCountryList();
-        repository.saveAll(list);
+        for (Country country : list) {
+            currencyRepository.saveAll(country.getCurrencies());
+        }
+//        for (Country country : list) {
+//            for (Currency currency : country.getCurrencies()) {
+//                currencyRepository.save(currency);
+//            }
+//        }
+        for (Country country : list) {
+            List<Currency> currencyList = new ArrayList<>();
+            for (Currency currency : country.getCurrencies()) {
+                Currency newCurrency = currencyRepository.findById(currency.getName())
+                        .orElse(new Currency(currency.getCode(), currency.getName(), currency.getSymbol()));
+                currencyList.add(newCurrency);
+            };
+            country.setCurrencies(currencyList);
+            countryRepository.save(country);
+        }
+
+
         setTimestamp();
         log.info("Database contents updated");
     }

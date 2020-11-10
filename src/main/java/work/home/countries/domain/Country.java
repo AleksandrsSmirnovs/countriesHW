@@ -4,6 +4,7 @@ import javax.persistence.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -20,14 +21,8 @@ public class Country {
     private long population;
     private double area;
 
-    @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(
-            name = "country_currency",
-            joinColumns = @JoinColumn(name = "country_id"),
-            inverseJoinColumns = @JoinColumn(name = "currency_id")
-    )
-    @OrderColumn
-    private Currency[] currencies;
+    @OneToMany(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
+    private List<Currency> currencies;
 
     public Long getId() {
         return id;
@@ -69,11 +64,11 @@ public class Country {
         this.area = area;
     }
 
-    public Currency[] getCurrencies() {
+    public List<Currency> getCurrencies() {
         return currencies;
     }
 
-    public void setCurrencies(Currency[] currencies) {
+    public void setCurrencies(List<Currency> currencies) {
         this.currencies = currencies;
     }
 
@@ -88,26 +83,26 @@ public class Country {
         Country country = (Country) o;
         return population == country.population &&
                 Double.compare(country.area, area) == 0 &&
+                Objects.equals(id, country.id) &&
                 Objects.equals(name, country.name) &&
                 Objects.equals(capital, country.capital) &&
-                Arrays.equals(currencies, country.currencies);
+                Objects.equals(currencies, country.currencies);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(name, capital, population, area);
-        result = 31 * result + Arrays.hashCode(currencies);
-        return result;
+        return Objects.hash(id, name, capital, population, area, currencies);
     }
 
     @Override
     public String toString() {
         return "Country{" +
-                "name='" + name + '\'' +
+                "id=" + id +
+                ", name='" + name + '\'' +
                 ", capital='" + capital + '\'' +
                 ", population=" + population +
                 ", area=" + area +
-                ", currencies=" + Arrays.toString(currencies) +
+                ", currencies=" + currencies +
                 '}';
     }
 }

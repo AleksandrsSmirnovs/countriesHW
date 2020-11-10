@@ -27,19 +27,19 @@ public class TopController {
 
     @GetMapping("/population/{number}")
     public List<CountryPopulationResponse> getTopCountriesByPopulation(@PathVariable int number) {
-        log.info(String.format("Received request: find top %d countries by population", number));
+        log.info("Received request: find top {} countries by population", number);
         return service.getTopCountriesByPopulation(number);
     }
 
     @GetMapping("/area/{number}")
     public List<CountryAreaResponse> getTopCountriesByArea(@PathVariable int number) {
-        log.info(String.format("Received request: find top %d countries by area", number));
+        log.info("Received request: find top {} countries by area", number);
         return service.getTopCountriesByArea(number);
     }
 
     @GetMapping("/density/{number}")
     public List<CountryDensityResponse> getTopCountriesByPopulationDensity(@PathVariable int number) {
-        log.info(String.format("Received request: find top %d countries by population density", number));
+        log.info("Received request: find top {} countries by population density", number);
         return service.getTopCountriesByPopulationDensity(number);
     }
 

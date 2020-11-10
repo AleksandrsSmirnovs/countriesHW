@@ -9,21 +9,9 @@ import java.util.Objects;
 public class Currency {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "currency_id")
-    private Long id;
-
     private String code;
     private String name;
     private String symbol;
-
-    @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(
-            name = "country_currency",
-            joinColumns = @JoinColumn(name = "currency_id"),
-            inverseJoinColumns = @JoinColumn(name = "country_id")
-    )
-    private List<Country> countryList;
 
     public Currency() {
     }
@@ -32,14 +20,6 @@ public class Currency {
         this.code = code;
         this.name = name;
         this.symbol = symbol;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public String getCode() {
@@ -66,39 +46,27 @@ public class Currency {
         this.symbol = symbol;
     }
 
-    public List<Country> getCountryList() {
-        return countryList;
-    }
-
-    public void setCountryList(List<Country> countryList) {
-        this.countryList = countryList;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Currency currency = (Currency) o;
-        return Objects.equals(id, currency.id) &&
-                Objects.equals(code, currency.code) &&
+        return Objects.equals(code, currency.code) &&
                 Objects.equals(name, currency.name) &&
-                Objects.equals(symbol, currency.symbol) &&
-                Objects.equals(countryList, currency.countryList);
+                Objects.equals(symbol, currency.symbol);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, code, name, symbol, countryList);
+        return Objects.hash(code, name, symbol);
     }
 
     @Override
     public String toString() {
         return "Currency{" +
-                "id=" + id +
-                ", code='" + code + '\'' +
+                "code='" + code + '\'' +
                 ", name='" + name + '\'' +
                 ", symbol='" + symbol + '\'' +
-                ", countryList=" + countryList +
                 '}';
     }
 }
